@@ -112,11 +112,12 @@ export class Service {
     }
   }
 
-  getFilePreview(fileId) {
+ getFilePreview(fileId) {
   if (!fileId) return "";
-  const result = this.bucket.getFilePreview(conf.appwriteBucketId, fileId);
+  const result = this.bucket.getFileView(conf.appwriteBucketId, fileId);
   return result?.href || result.toString?.() || "";
 }
+
 }
 
 // Export a singleton

@@ -96,7 +96,7 @@ function Login() {
               className="space-y-5"
             >
               <Input
-                className="text-white"
+                className="text-black"
                 label="Email Address"
                 placeholder="Enter your email"
                 type="email"
@@ -112,7 +112,7 @@ function Login() {
               />
 
               <Input
-                className="text-white placeholder:text-gray-800 "
+                className="text-black placeholder:text-gray-800 "
                 label="Password"
                 placeholder="Enter your password"
                 type="password"
