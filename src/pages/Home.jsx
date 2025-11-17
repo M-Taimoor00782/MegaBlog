@@ -14,19 +14,15 @@ function Home() {
   const cursorRef = useRef(null);
   const navigate = useNavigate();
 
-  // current logged-in user
+  // Current logged-in user
   const userData = useSelector((state) => state.auth?.userData);
 
-  // fetch posts from Appwrite
+  // Fetch posts from Appwrite
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await appwriteService.getPosts();
-        if (res?.documents) {
-          setPosts(res.documents);
-        } else {
-          setPosts([]);
-        }
+        setPosts(res?.documents || []);
       } catch (error) {
         console.error("Error fetching posts:", error.message);
       }
@@ -34,7 +30,7 @@ function Home() {
     fetchPosts();
   }, []);
 
-  // typing animation for heading
+  // Typing animation for heading
   useEffect(() => {
     if (!titleRef.current) return;
     const text = "Mega Blogs Post.";
@@ -70,15 +66,6 @@ function Home() {
       isCancelled = true;
     };
   }, []);
-
-  // Like / Comment / Share buttons
-  const handleAction = (action, postId) => {
-    if (!userData) {
-      navigate("/login");
-      return;
-    }
-    console.log(`${action} on post:`, postId);
-  };
 
   // Welcome section
   const WelcomeSection = () => (
@@ -171,68 +158,7 @@ function Home() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5 }}
                   >
-                    {!userData ? (
-                      <div className="bg-gray-800 rounded-xl overflow-hidden shadow hover:shadow-lg transition">
-                        {post.featuredImage ? (
-                          <img
-                            src={appwriteService.getFilePreview(
-                              post.featuredImage
-                            )}
-                            alt={post.title}
-                            className="w-full h-48 object-cover"
-                          />
-                        ) : (
-                          <img
-                            src="/placeholder.png"
-                            alt="placeholder"
-                            className="w-full h-48 object-cover opacity-80"
-                          />
-                        )}
-                        <div className="p-3">
-                          <h3 className="text-white font-semibold text-lg truncate">
-                            {post.title}
-                          </h3>
-                          <p className="text-gray-400 text-sm mt-1">
-                            {post.content
-                              .replace(/<[^>]+>/g, "")
-                              .split(" ")
-                              .slice(0, 20)
-                              .join(" ")}
-                            ...
-                          </p>
-                          <button
-                            onClick={() => navigate("/login")}
-                            className="mt-3 w-full py-2 bg-cyan-600 hover:bg-cyan-700 rounded text-white text-sm font-medium transition"
-                          >
-                            Login to Read More
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-800 rounded-xl overflow-hidden shadow hover:shadow-lg transition flex flex-col">
-                        <PostCard {...post} />
-                        <div className="flex justify-around py-2 border-t border-gray-700 text-gray-300 text-sm">
-                          <button
-                            onClick={() => handleAction("like", post.$id)}
-                            className="hover:text-cyan-400"
-                          >
-                            👍 Like
-                          </button>
-                          <button
-                            onClick={() => handleAction("comment", post.$id)}
-                            className="hover:text-cyan-400"
-                          >
-                            💬 Comment
-                          </button>
-                          <button
-                            onClick={() => handleAction("share", post.$id)}
-                            className="hover:text-cyan-400"
-                          >
-                            🔗 Share
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <PostCard {...post} />
                   </motion.div>
                 )
             )

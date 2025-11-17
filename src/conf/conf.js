@@ -4,6 +4,9 @@ const conf = {
     appwriteDatabaseId: String(import.meta.env.VITE_APPWRITE_DATABASE_ID),
     appwriteCollectionId: String(import.meta.env.VITE_APPWRITE_COLLECTION_ID),
     appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
+    appwriteLikesId: String(import.meta.env.VITE_APPWRITE_LIKES_ID),
+    appwriteCommentsId: String(import.meta.env.VITE_APPWRITE_COMMENTS_ID),
+
 
     appwriteSuccessUrl: import.meta.env.VITE_APPWRITE_SUCCESS_URL,
     appwriteFailureUrl: import.meta.env.VITE_APPWRITE_FAILURE_URL,

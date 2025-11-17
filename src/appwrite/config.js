@@ -89,12 +89,11 @@ export class Service {
 
   async uploadFile(file) {
     try {
-      
       return await this.bucket.createFile(
         conf.appwriteBucketId,
         ID.unique(),
         file,
-        [Permission.read(Role.any())] // anyone can view image
+        [Permission.read(Role.any())]
       );
     } catch (error) {
       console.error("File upload failed:", error);
@@ -112,14 +111,106 @@ export class Service {
     }
   }
 
- getFilePreview(fileId) {
-  if (!fileId) return "";
-  const result = this.bucket.getFileView(conf.appwriteBucketId, fileId);
-  return result?.href || result.toString?.() || "";
+  getFilePreview(fileId) {
+    if (!fileId) return "";
+    const result = this.bucket.getFileView(conf.appwriteBucketId, fileId);
+    return result?.href || result.toString?.() || "";
+  }
+
+  // ---------------------- LIKES ----------------------
+
+  async addLike({ postId, userId }) {
+    try {
+      return await this.databases.createDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteLikesId,
+        ID.unique(),
+        { postId, userId }
+      );
+    } catch (error) {
+      console.error("Add like failed:", error);
+      throw error;
+    }
+  }
+
+  async removeLike({ postId, userId }) {
+    try {
+      const existing = await this.databases.listDocuments(
+        conf.appwriteDatabaseId,
+        conf.appwriteLikesId,
+        [Query.equal("postId", postId), Query.equal("userId", userId)]
+      );
+      if (existing.total > 0) {
+        await this.databases.deleteDocument(
+          conf.appwriteDatabaseId,
+          conf.appwriteLikesId,
+          existing.documents[0].$id
+        );
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Remove like failed:", error);
+      throw error;
+    }
+  }
+
+  async getLikes(postId) {
+    try {
+      return await this.databases.listDocuments(
+        conf.appwriteDatabaseId,
+        conf.appwriteLikesId,
+        [Query.equal("postId", postId)]
+      );
+    } catch (error) {
+      console.error("Get likes failed:", error);
+      throw error;
+    }
+  }
+
+  // ---------------------- COMMENTS ----------------------
+
+  async addComment({ postId, userId, username, content }) {
+    try {
+      return await this.databases.createDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteCommentsId,
+        ID.unique(),
+        { postId, userId, username, content }
+      );
+    } catch (error) {
+      console.error("Add comment failed:", error);
+      throw error;
+    }
+  }
+
+  async getComments(postId) {
+    try {
+      return await this.databases.listDocuments(
+        conf.appwriteDatabaseId,
+        conf.appwriteCommentsId,
+        [Query.equal("postId", postId), Query.orderAsc("$createdAt")]
+      );
+    } catch (error) {
+      console.error("Get comments failed:", error);
+      throw error;
+    }
+  }
+
+  async deleteComment(commentId) {
+    try {
+      await this.databases.deleteDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteCommentsId,
+        commentId
+      );
+      return true;
+    } catch (error) {
+      console.error("Delete comment failed:", error);
+      throw error;
+    }
+  }
 }
 
-}
-
-// Export a singleton
 const service = new Service();
 export default service;
