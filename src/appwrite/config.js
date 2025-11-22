@@ -210,6 +210,56 @@ export class Service {
       throw error;
     }
   }
+
+  // ------------ PROFILE FUNCTIONS ------------------
+
+  async getProfile(userId) {
+    try {
+      const res = await this.databases.listDocuments(
+        conf.appwriteDatabaseId,
+        conf.appwriteProfilesId,
+        [Query.equal("userId", userId)]
+      );
+      return res.documents[0] || null;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      throw error;
+    }
+  }
+
+  async createProfile({ userId, username, email, phone = "", bio = "", avatar = "" }) {
+    try {
+      return await this.databases.createDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteProfilesId,
+        ID.unique(),
+        { userId, username, email, phone, bio, avatar }
+      );
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
+  }
+
+  async updateProfile(userId, data) {
+    try {
+      const existing = await this.getProfile(userId);
+      if (existing) {
+        return await this.databases.updateDocument(
+          conf.appwriteDatabaseId,
+          conf.appwriteProfilesId,
+          existing.$id,
+          data
+        );
+      } else {
+        return await this.createProfile({ userId, ...data });
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  }
+
 }
 
 const service = new Service();

@@ -6,6 +6,7 @@ const conf = {
     appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),
     appwriteLikesId: String(import.meta.env.VITE_APPWRITE_LIKES_ID),
     appwriteCommentsId: String(import.meta.env.VITE_APPWRITE_COMMENTS_ID),
+    appwriteProfilesId: String(import.meta.env.VITE_APPWRITE_PROFILES_ID),
 
 
     appwriteSuccessUrl: import.meta.env.VITE_APPWRITE_SUCCESS_URL,
