@@ -5,31 +5,29 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Logo, LogoutBtn } from "../index";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiMenu, HiX, HiHome, HiPlus, HiCollection } from "react-icons/hi";
-import { FaFacebookF, FaInstagram, FaGithub, FaSignInAlt, FaUserPlus } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
-import { FaUserCircle } from "react-icons/fa";
+import { FaSignInAlt, FaUserPlus, FaUserCircle } from "react-icons/fa";
 import appwriteService from "../../appwrite/config";
 
 const Header = () => {
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
-
   const [profileImg, setProfileImg] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Fetch profile image dynamically
   useEffect(() => {
     const loadProfileImg = async () => {
-      if (!authStatus || !userData) return setProfileImg(null);
-
+      if (!authStatus || !userData) {
+        setProfileImg(null);
+        return;
+      }
       try {
         const profile = await appwriteService.getProfile(userData.$id);
-        if (profile?.profileImage) {
-          const imgUrl = appwriteService.getFilePreview(profile.profileImage);
+        if (profile?.avatar) {
+          const imgUrl = appwriteService.getFilePreview(profile.avatar);
           setProfileImg(imgUrl);
         } else {
           setProfileImg(null);
@@ -40,12 +38,6 @@ const Header = () => {
     };
     loadProfileImg();
   }, [authStatus, userData]);
-
-  // Lock/unlock scrolling
-  useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", mobileMenuOpen);
-    return () => document.body.classList.remove("overflow-hidden");
-  }, [mobileMenuOpen]);
 
   const navItems = [
     { name: "Home", slug: "/", active: true, icon: <HiHome /> },
@@ -63,9 +55,20 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 left-0 w-full z-50">
-      <div className="flex items-center justify-between py-3 px-4 sm:px-8 backdrop-blur-md bg-white/10 border-b border-white/20 relative z-50">
-
-        {/* Mobile hamburger */}
+      {/* Navbar Background */}
+      <div
+        className="flex items-center justify-between py-3 px-4 sm:px-8 relative z-50
+        border-b border-white/20 backdrop-blur-2xl"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)",
+          boxShadow:
+            "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.2)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
+      >
+        {/* Mobile Menu Button */}
         <div className="sm:hidden flex items-center">
           <motion.button
             onClick={() => setMobileMenuOpen(true)}
@@ -78,7 +81,7 @@ const Header = () => {
 
         {/* Logo */}
         <div className="flex-1 flex justify-center sm:justify-start">
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center z-50">
             <Logo />
           </Link>
         </div>
@@ -91,11 +94,12 @@ const Header = () => {
                 <li key={item.name}>
                   <button
                     onClick={() => navigate(item.slug)}
-                    className={`px-4 py-2 rounded-xl text-lg font-semibold transition
-                      ${location.pathname === item.slug
-                        ? "text-cyan-400 bg-white/20"
-                        : "text-white hover:text-cyan-300 hover:bg-white/20"}
-                    `}
+                    className={`px-4 py-2 rounded-xl text-lg font-semibold transition-all
+                      ${
+                        location.pathname === item.slug
+                          ? "text-cyan-400 bg-white/20"
+                          : "text-white hover:text-cyan-300 hover:bg-white/10"
+                      }`}
                   >
                     {item.name}
                   </button>
@@ -117,11 +121,11 @@ const Header = () => {
                     className="w-10 h-10 rounded-full border-2 border-cyan-400 shadow-md object-cover transition-all duration-300 hover:scale-105"
                   />
                 ) : (
-                  <FaUserCircle className="text-2xl text-cyan-300 cursor-pointer" />
+                  <FaUserCircle className="text-3xl text-cyan-300 cursor-pointer" />
                 )}
               </button>
 
-              {/* Dropdown */}
+              {/* Profile Dropdown */}
               <AnimatePresence>
                 {profileOpen && (
                   <motion.div
@@ -129,18 +133,37 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute p-4 right-0 my-2 w-48 rounded-lg bg-gray-800 border border-gray-700 shadow-lg overflow-hidden z-50 flex flex-col gap-4"
+                    className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/20 
+                    bg-white/10 backdrop-blur-2xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]
+                    overflow-hidden text-white"
                   >
+                    <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
+                      {profileImg ? (
+                        <img
+                          src={profileImg}
+                          alt="Profile"
+                          className="w-10 h-10 rounded-full border border-white/30 object-cover"
+                        />
+                      ) : (
+                        <FaUserCircle className="text-3xl text-cyan-300" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{userData?.name}</p>
+                        <p className="text-xs text-gray-300">
+                          {userData?.email}
+                        </p>
+                      </div>
+                    </div>
                     <Link
                       to="/profile"
                       onClick={() => setProfileOpen(false)}
-                      className="block w-full text-left px-4 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-700"
+                      className="block px-5 py-3 hover:bg-white/20 transition text-sm font-medium"
                     >
                       View Profile
                     </Link>
                     <LogoutBtn
                       onClick={() => setProfileOpen(false)}
-                      className="block w-full text-left px-4 py-3 text-white hover:bg-gray-700"
+                      className="block w-full text-left px-5 py-3 hover:bg-white/20 transition text-sm font-medium"
                     />
                   </motion.div>
                 )}
@@ -150,7 +173,7 @@ const Header = () => {
         </ul>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -191,7 +214,7 @@ const Header = () => {
                   <Link
                     to="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/10 hover:bg-white/20"
                   >
                     {profileImg ? (
                       <img
@@ -203,7 +226,6 @@ const Header = () => {
                     )}
                     View Profile
                   </Link>
-
                   <div className="mt-4">
                     <LogoutBtn onClick={() => setMobileMenuOpen(false)} />
                   </div>
