@@ -58,14 +58,14 @@ const Header = () => {
       {/* Navbar Background */}
       <div
         className="flex items-center justify-between py-3 px-4 sm:px-8 relative z-50
-        border-b border-white/20 backdrop-blur-2xl"
+        border-b border-white/20 backdrop-blur-sm"
         style={{
           background:
             "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)",
           boxShadow:
-            "0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.2)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+            "0 8px 32px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.3)",
+          backdropFilter: "blur(3px)",
+          WebkitBackdropFilter: "blur(3px)",
         }}
       >
         {/* Mobile Menu Button */}
@@ -94,11 +94,11 @@ const Header = () => {
                 <li key={item.name}>
                   <button
                     onClick={() => navigate(item.slug)}
-                    className={`px-4 py-2 rounded-xl text-lg font-semibold transition-all
+                    className={`px-4 py-2 rounded-xl text-lg font-semibold transition-all cursor-pointer
                       ${
                         location.pathname === item.slug
                           ? "text-cyan-400 bg-white/20"
-                          : "text-white hover:text-cyan-300 hover:bg-white/10"
+                          : "text-cyan-300 hover:text-cyan-300 hover:bg-white/10"
                       }`}
                   >
                     {item.name}
@@ -118,7 +118,7 @@ const Header = () => {
                   <img
                     src={profileImg}
                     alt="Profile"
-                    className="w-10 h-10 rounded-full border-2 border-cyan-400 shadow-md object-cover transition-all duration-300 hover:scale-105"
+                    className="w-12 h-12 rounded-full border-2 border-cyan-400 shadow-md object-cover transition-all duration-300 hover:scale-105"
                   />
                 ) : (
                   <FaUserCircle className="text-3xl text-cyan-300 cursor-pointer" />
@@ -133,16 +133,13 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/20 
-                    bg-white/10 backdrop-blur-2xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]
-                    overflow-hidden text-white"
-                  >
-                    <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
+                    className="absolute right-0 mt-3 w-56 rounded-2xl border border-black/50 bg-black/40 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.3)] overflow-hidden text-white p-2">
+                    <div className="flex items-center gap-3 px-2 py-4 border-b border-white/10">
                       {profileImg ? (
                         <img
                           src={profileImg}
                           alt="Profile"
-                          className="w-10 h-10 rounded-full border border-white/30 object-cover"
+                          className="w-20 h-12 rounded-full border border-white/30 object-cover"
                         />
                       ) : (
                         <FaUserCircle className="text-3xl text-cyan-300" />
@@ -157,7 +154,7 @@ const Header = () => {
                     <Link
                       to="/profile"
                       onClick={() => setProfileOpen(false)}
-                      className="block px-5 py-3 hover:bg-white/20 transition text-sm font-medium"
+                      className="block px-5 py-3 bg-slate-700 hover:bg-white/20 transition rounded-lg text-sm font-medium my-2"
                     >
                       View Profile
                     </Link>
@@ -181,7 +178,7 @@ const Header = () => {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-xl z-50 flex flex-col p-6"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col p-6"
           >
             {/* Close button */}
             <button

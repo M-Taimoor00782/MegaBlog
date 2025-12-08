@@ -4,7 +4,7 @@ import appwriteService from "../appwrite/config";
 import { Button, Container } from "../components";
 import parse from "html-react-parser";
 import { useSelector } from "react-redux";
-import { FiHeart, FiMessageCircle, FiShare2, FiTrash2 } from "react-icons/fi";
+import { FiHeart, FiMessageCircle, FiShare2, FiTrash2, FiSend } from "react-icons/fi";
 
 function Post() {
   const [post, setPost] = useState(null);
@@ -20,7 +20,7 @@ function Post() {
   const isAuthor = post && userData ? post.userId === userData.$id : false;
   const isLiked = likes.some((like) => like.userId === userData?.$id);
 
-  // ---------------------- FETCH POST ----------------------
+  // Fetch post
   useEffect(() => {
     if (slug) {
       appwriteService.getPost(slug).then((res) => {
@@ -30,7 +30,7 @@ function Post() {
     }
   }, [slug, navigate]);
 
-  // ---------------------- FETCH LIKES ----------------------
+  // Fetch likes
   useEffect(() => {
     if (post?.$id) {
       appwriteService.getLikes(post.$id).then((res) => {
@@ -39,7 +39,7 @@ function Post() {
     }
   }, [post]);
 
-  // ---------------------- FETCH COMMENTS ----------------------
+  // Fetch comments
   useEffect(() => {
     if (post?.$id) {
       appwriteService.getComments(post.$id).then((res) => {
@@ -48,21 +48,19 @@ function Post() {
     }
   }, [post]);
 
-  // ---------------------- LIKE HANDLER ----------------------
+  // Like handler
   const handleLike = async () => {
     if (!userData) return alert("Please log in to like posts.");
-
     if (isLiked) {
       await appwriteService.removeLike({ postId: post.$id, userId: userData.$id });
     } else {
       await appwriteService.addLike({ postId: post.$id, userId: userData.$id });
     }
-
     const updatedLikes = await appwriteService.getLikes(post.$id);
     setLikes(updatedLikes.documents);
   };
 
-  // ---------------------- COMMENT HANDLER ----------------------
+  // Comment handler
   const handleComment = async (e) => {
     e.preventDefault();
     if (!userData) return alert("Please log in to comment.");
@@ -80,14 +78,14 @@ function Post() {
     setComments(updatedComments.documents);
   };
 
-  // ---------------------- DELETE COMMENT ----------------------
+  // Delete comment
   const handleDeleteComment = async (id, userId) => {
     if (userData?.$id !== userId && !isAuthor) return;
     await appwriteService.deleteComment(id);
     setComments((prev) => prev.filter((c) => c.$id !== id));
   };
 
-  // ---------------------- SHARE HANDLER ----------------------
+  // Share post
   const handleShare = async () => {
     const shareData = {
       title: post?.title || "Blog Post",
@@ -107,7 +105,7 @@ function Post() {
     }
   };
 
-  // ---------------------- DELETE POST ----------------------
+  // Delete post
   const deletePost = async () => {
     try {
       const status = await appwriteService.deletePost(post.$id);
@@ -124,7 +122,6 @@ function Post() {
     ? appwriteService.getFilePreview(post.featuredImage)
     : "/placeholder.png";
 
-  // ---------------------- UI ----------------------
   return post ? (
     <div className="py-8">
       <Container>
@@ -163,7 +160,7 @@ function Post() {
               isLiked ? "text-red-500 " : "text-gray-300"
             } hover:text-red-400`}
           >
-            <FiHeart size={20} className={`${ isLiked ? "fill-red-400" : 'fill:none' }`} /> {likes.length}
+            <FiHeart size={20} className={`${isLiked ? "fill-red-400" : "fill:none"}`} /> {likes.length}
           </button>
 
           <button
@@ -183,7 +180,7 @@ function Post() {
 
         {/* COMMENTS SECTION */}
         {showComments && (
-          <div className="space-y-6 bg-white/5 p-6 rounded-xl">
+          <div className="space-y-6 bg-transparent p-6 rounded-xl">
             <h2 className="text-xl font-semibold text-cyan-400">Comments</h2>
 
             {/* Add comment form */}
@@ -191,35 +188,36 @@ function Post() {
               <input
                 type="text"
                 placeholder="Write a comment..."
-                className="flex-1 bg-white/10 text-white p-3 rounded-lg outline-none border border-gray-600 focus:border-cyan-500"
+                className="flex-1 bg-white/2 text-white p-3 rounded-lg outline-none border border-gray-600 focus:border-cyan-500"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <Button type="submit" bgColor="bg-cyan-600">
-                Post
-              </Button>
+              <button
+                type="submit"
+                className="bg-cyan-600 py-3 px-4 rounded-lg text-white hover:bg-cyan-700 transition flex items-center justify-center cursor-pointer"
+              >
+                <FiSend size={20} />
+              </button>
             </form>
 
             {/* Comment list */}
             <div className="space-y-4">
               {comments.length === 0 && (
-                <p className="text-gray-400 text-sm">No comments yet.</p>
+                <p className="text-gray-300 text-sm">No comments yet.</p>
               )}
               {comments.map((c) => (
                 <div
                   key={c.$id}
-                  className="flex justify-between items-start bg-white/10 p-3 rounded-lg"
+                  className="flex justify-between items-start bg-white/2 p-3 rounded-lg"
                 >
                   <div>
-                    <p className="text-sm text-gray-200 font-medium">
-                      {c.username || "Anonymous"}
-                    </p>
+                    <p className="text-sm text-gray-200 font-medium">{c.username || "Anonymous"}</p>
                     <p className="text-gray-400 text-sm">{c.content}</p>
                   </div>
                   {(userData?.$id === c.userId || isAuthor) && (
                     <button
                       onClick={() => handleDeleteComment(c.$id, c.userId)}
-                      className="text-red-500 hover:text-red-400"
+                      className="text-red-400 hover:text-red-600 cursor-pointer"
                     >
                       <FiTrash2 />
                     </button>
