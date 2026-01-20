@@ -1,26 +1,41 @@
 import React, { useState, useEffect } from "react";
-import appwriteService from "../appwrite/config";
+import { useSelector } from "react-redux";
+import service from "../appwrite/config";
 import { Container, PostCard } from "../components";
 
 function AllPost() {
   const [posts, setPosts] = useState([]);
+  const user = useSelector((state) => state.auth.userData);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await appwriteService.getPosts([]);
-        if (response?.documents) {
-          setPosts(response.documents);
+        // Fetch all posts without filtering at DB level
+        const res = await service.getPosts([]);
+
+        if (res?.documents) {
+          // Filter posts: active OR belongs to logged-in user
+          const filteredPosts = res.documents.filter(
+            (post) => post.status === "active" || post.userId === user?.$id
+          );
+
+          // Optionally sort by creation date descending
+          filteredPosts.sort(
+            (a, b) => new Date(b.$createdAt) - new Date(a.$createdAt)
+          );
+
+          setPosts(filteredPosts);
         } else {
           setPosts([]);
         }
-      } catch (error) {
-        console.error("Error fetching posts:", error.message);
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+        setPosts([]);
       }
     };
 
     fetchPosts();
-  }, []);
+  }, [user]);
 
   return (
     <div className="w-full py-8 min-h-[80vh]">

@@ -19,7 +19,7 @@ function App() {
           dispatch(login(userData));
         } else {
           dispatch(logout());
-          // ❌ removed navigate("/login")
+          // removed navigate("/login")
           // Let Home or other routes load
         }
       } catch (error) {

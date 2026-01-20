@@ -14,7 +14,7 @@ export class AuthService {
     this.account = new Account(this.client);
   }
 
-  // Email/Password Account Creation
+  // -------------------- SIGNUP --------------------
   async createAccount({ email, password, name }) {
     try {
       const userAccount = await this.account.create(
@@ -23,17 +23,19 @@ export class AuthService {
         password,
         name
       );
+
       if (userAccount) {
-        // login user immediately after signup
+        // Login user immediately after signup
         return this.login({ email, password });
       }
+
       return userAccount;
     } catch (error) {
       throw error;
     }
   }
 
-  //Email/Password Login
+  // -------------------- LOGIN --------------------
   async login({ email, password }) {
     try {
       return await this.account.createEmailPasswordSession(email, password);
@@ -42,7 +44,7 @@ export class AuthService {
     }
   }
 
-  // ✅ OAuth Login with Dynamic Success/Failure URLs
+  // -------------------- OAUTH LOGIN --------------------
   async loginWithProvider(provider) {
     try {
       const successUrl =
@@ -50,26 +52,55 @@ export class AuthService {
       const failureUrl =
         conf.appwriteFailureUrl || `${window.location.origin}/failure`;
 
-      return this.account.createOAuth2Session(provider, successUrl, failureUrl);
+      return this.account.createOAuth2Session(
+        provider,
+        successUrl,
+        failureUrl
+      );
     } catch (error) {
       throw error;
     }
   }
 
-  //Get current logged-in user
+  // -------------------- FORGOT PASSWORD --------------------
+  async forgotPassword(email) {
+    try {
+      return await this.account.createRecovery(
+        email,
+        `${window.location.origin}/reset-password`
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // -------------------- RESET PASSWORD --------------------
+  async resetPassword({ userId, secret, password, confirmPassword }) {
+    try {
+      return await this.account.updateRecovery(
+        userId,
+        secret,
+        password,
+        confirmPassword
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // -------------------- CURRENT USER --------------------
   async getCurrentUser() {
     try {
       return await this.account.get();
     } catch (error) {
       if (error.code === 401) {
-        // Not logged in, return null
         return null;
       }
       throw error;
     }
   }
 
-  //Logout (all sessions)
+  // -------------------- LOGOUT --------------------
   async logout() {
     try {
       return await this.account.deleteSessions();
@@ -79,6 +110,6 @@ export class AuthService {
   }
 }
 
-// Export
+// Export singleton instance
 const authService = new AuthService();
 export default authService;
