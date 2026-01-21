@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
+import ScrollToTop from "./components/ScrollToTop";
 import { useDispatch } from "react-redux";
 import { Outlet } from "react-router-dom";
 import authservice from "./appwrite/auth";
@@ -58,6 +59,7 @@ function App() {
       <main className="flex-1 flex justify-center items-start py-4 px-2 sm:px-6 lg:px-8">
         <div className="w-full max-w-screen overflow-hidden">
           <div className="p-2 sm:p-4">
+            <ScrollToTop />
             <Outlet />
           </div>
         </div>
