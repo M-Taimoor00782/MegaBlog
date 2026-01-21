@@ -141,8 +141,6 @@ const router = createBrowserRouter([
 { path: "/privacy", element: <Privacy /> },
 { path: "/guidelines", element: <Guidelines /> },
 
- { path: "/all-posts", element: <AuthLayout authentication><AllPost /></AuthLayout> },
-
     ],
   },
 ]);
