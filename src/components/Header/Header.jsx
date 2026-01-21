@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Logo, LogoutBtn } from "../index";
@@ -16,6 +16,9 @@ const Header = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Ref for profile dropdown to detect outside clicks
+  const profileRef = useRef(null);
 
   // Fetch profile image dynamically
   useEffect(() => {
@@ -39,6 +42,22 @@ const Header = () => {
     loadProfileImg();
   }, [authStatus, userData]);
 
+  // Lock scroll on mobile menu
+  useEffect(() => {
+    document.body.classList.toggle("overflow-hidden", mobileMenuOpen);
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const navItems = [
     { name: "Home", slug: "/", active: true, icon: <HiHome /> },
     { name: "Login", slug: "/login", active: !authStatus, icon: <FaSignInAlt /> },
@@ -46,12 +65,6 @@ const Header = () => {
     { name: "All Posts", slug: "/all-posts", active: authStatus, icon: <HiCollection /> },
     { name: "Add Post", slug: "/add-post", active: authStatus, icon: <HiPlus /> },
   ];
-
-  // Lock scroll on mobile menu
-  useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", mobileMenuOpen);
-    return () => document.body.classList.remove("overflow-hidden");
-  }, [mobileMenuOpen]);
 
   return (
     <header className="sticky top-0 left-0 w-full z-50">
@@ -109,10 +122,10 @@ const Header = () => {
 
           {/* Profile Avatar */}
           {authStatus && (
-            <li className="relative">
+            <li className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((p) => !p)}
-                className="ml-3 flex items-center gap-2 px-3 py-2 rounded-full text-white hover:bg-white/10 transition"
+                className="ml-3 flex items-center gap-2 px-3 py-2 rounded-full text-white hover:bg-white/10 transition cursor-pointer"
               >
                 {profileImg ? (
                   <img
@@ -133,7 +146,8 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-3 w-56 rounded-2xl border border-black/50 bg-black/40 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.3)] overflow-hidden text-white p-2">
+                    className="absolute right-0 mt-3 w-56 rounded-2xl border border-black/50 bg-black/40 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.3)] overflow-hidden text-white p-2"
+                  >
                     <div className="flex items-center gap-3 px-2 py-4 border-b border-white/10">
                       {profileImg ? (
                         <img
@@ -146,9 +160,7 @@ const Header = () => {
                       )}
                       <div>
                         <p className="text-sm font-medium">{userData?.name}</p>
-                        <p className="text-xs text-gray-300">
-                          {userData?.email}
-                        </p>
+                        <p className="text-xs text-gray-300">{userData?.email}</p>
                       </div>
                     </div>
                     <Link

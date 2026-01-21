@@ -45,22 +45,28 @@ export class AuthService {
   }
 
   // -------------------- OAUTH LOGIN --------------------
-  async loginWithProvider(provider) {
-    try {
-      const successUrl =
-        conf.appwriteSuccessUrl || `${window.location.origin}/success`;
-      const failureUrl =
-        conf.appwriteFailureUrl || `${window.location.origin}/failure`;
+async loginWithProvider(provider) {
+  try {
+    const successUrl =
+      conf.appwriteSuccessUrl || `${window.location.origin}/success`;
+    const failureUrl =
+      conf.appwriteFailureUrl || `${window.location.origin}/failure`;
 
-      return this.account.createOAuth2Session(
-        provider,
-        successUrl,
-        failureUrl
+    // Check for valid providers
+    const allowedProviders = ["github", "google", "linkedin"];
+    if (!allowedProviders.includes(provider.toLowerCase())) {
+      throw new Error(
+        `Invalid provider. Allowed providers are: ${allowedProviders.join(
+          ", "
+        )}`
       );
-    } catch (error) {
-      throw error;
     }
+
+    return this.account.createOAuth2Session(provider.toLowerCase(), successUrl, failureUrl);
+  } catch (error) {
+    throw error;
   }
+}
 
   // -------------------- FORGOT PASSWORD --------------------
   async forgotPassword(email) {
