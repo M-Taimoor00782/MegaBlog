@@ -8,36 +8,45 @@ import { login } from "../store/authSlice";
 export default function Profile() {
   const user = useSelector((state) => state.auth.userData);
   const dispatch = useDispatch();
+
+  // Initialize formData from Redux user immediately
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
+    username: user?.name || "",
+    email: user?.email || "",
     phone: "",
     bio: "",
     avatar: "",
     gender: "",
     language: "",
   });
-  const [preview, setPreview] = useState("");
+
+  const [preview, setPreview] = useState(""); // Avatar preview
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Load profile from Appwrite
   useEffect(() => {
     if (!user) return;
+
     const loadProfile = async () => {
       try {
         const res = await appwriteService.getProfile(user.$id);
+
         if (res) {
-          setFormData({
-            username: res.username || user.name || "",
-            email: res.email || user.email || "",
+          setFormData((prev) => ({
+            ...prev,
+            username: res.username || prev.username,
+            email: res.email || prev.email,
             phone: res.phone || "",
             bio: res.bio || "",
             avatar: res.avatar || "",
             gender: res.gender || "",
             language: res.language || "",
-          });
+          }));
+
           if (res.avatar) setPreview(appwriteService.getFilePreview(res.avatar));
         } else {
+          // Create new profile if not exists
           await appwriteService.createProfile({
             userId: user.$id,
             username: user.name,
@@ -53,20 +62,25 @@ export default function Profile() {
         console.error("Profile fetch error:", err);
       }
     };
+
     loadProfile();
   }, [user]);
 
+  // Handle input changes
   const handleChange = (e) =>
-    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  // Handle avatar upload
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setLoading(true);
     try {
       const uploaded = await appwriteService.uploadFile(file);
       if (formData.avatar) await appwriteService.deleteFile(formData.avatar);
-      setFormData((p) => ({ ...p, avatar: uploaded.$id }));
+
+      setFormData((prev) => ({ ...prev, avatar: uploaded.$id }));
       setPreview(appwriteService.getFilePreview(uploaded.$id));
     } catch (err) {
       console.error("Upload failed:", err);
@@ -75,12 +89,16 @@ export default function Profile() {
     }
   };
 
+  // Save profile changes
   const handleSave = async () => {
     setLoading(true);
     try {
       await appwriteService.updateProfile(user.$id, formData);
       const updated = await appwriteService.getProfile(user.$id);
+
+      // Update Redux with new name
       dispatch(login({ ...user, name: updated.username }));
+
       setEditing(false);
     } catch (err) {
       console.error("Profile update error:", err);
@@ -89,6 +107,7 @@ export default function Profile() {
     }
   };
 
+  // If not logged in
   if (!user)
     return (
       <div className="h-[70vh] flex justify-center items-center text-gray-600 text-lg">
@@ -97,31 +116,25 @@ export default function Profile() {
     );
 
   return (
-    <div
-      className="min-h-screen flex justify-center items-start px-4 py-12"
-      
-    >
-     <motion.div
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5 }}
-  className="relative w-full max-w-3xl rounded-3xl overflow-hidden 
+    <div className="min-h-screen flex justify-center items-start px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full max-w-3xl rounded-3xl overflow-hidden 
              p-6 sm:p-10 text-white border border-white/20 
              backdrop-blur-[40px] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-  style={{
-    background:
-      "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)",
-    boxShadow:
-      "0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255,255,255,0.2)",
-    backdropFilter: "blur(30px)",
-    WebkitBackdropFilter: "blur(30px)",
-  }}
->
-  {/* Subtle reflection at the top */}
-  <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-b from-white/15 to-transparent rounded-t-3xl pointer-events-none"></div>
-
-
-
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)",
+          boxShadow:
+            "0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255,255,255,0.2)",
+          backdropFilter: "blur(30px)",
+          WebkitBackdropFilter: "blur(30px)",
+        }}
+      >
+        {/* Subtle reflection at the top */}
+        <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-b from-white/15 to-transparent rounded-t-3xl pointer-events-none"></div>
 
         <div className="relative z-10">
           {/* Header */}
@@ -164,23 +177,78 @@ export default function Profile() {
 
           {/* Form */}
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <InputField label="Full Name" name="username" value={formData.username} onChange={handleChange} disabled={!editing} />
-            <InputField label="Email Address" name="email" value={formData.email} onChange={handleChange} disabled={!editing} />
-            <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} disabled={!editing} options={["Male", "Female", "Other"]} />
-            <SelectField label="Language" name="language" value={formData.language} onChange={handleChange} disabled={!editing} options={["English", "Urdu", "Spanish", "French", "Arabic", "German"]} />
-            <InputField label="Phone" name="phone" value={formData.phone} onChange={handleChange} disabled={!editing} placeholder="+92 300 0000000" />
-            <TextAreaField label="Bio" name="bio" value={formData.bio} onChange={handleChange} disabled={!editing} placeholder="Tell us about yourself..." />
+            <InputField
+              label="Full Name"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              disabled={!editing}
+            />
+            <InputField
+              label="Email Address"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              disabled={!editing}
+            />
+            <SelectField
+              label="Gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              disabled={!editing}
+              options={["Male", "Female", "Other"]}
+            />
+            <SelectField
+              label="Language"
+              name="language"
+              value={formData.language}
+              onChange={handleChange}
+              disabled={!editing}
+              options={["English", "Urdu", "Spanish", "French", "Arabic", "German"]}
+            />
+            <InputField
+              label="Phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={!editing}
+              placeholder="+92 300 0000000"
+            />
+            <TextAreaField
+              label="Bio"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              disabled={!editing}
+              placeholder="Tell us about yourself..."
+            />
           </div>
 
           {/* Buttons */}
           <div className="flex justify-center sm:justify-end gap-4 mt-8 flex-wrap">
             {editing ? (
               <>
-                <Button onClick={() => setEditing(false)} icon={<FiX />} text="Cancel" color="gray" />
-                <Button onClick={handleSave} icon={<FiCheck />} text={loading ? "Saving..." : "Save"} color="cyan" />
+                <Button
+                  onClick={() => setEditing(false)}
+                  icon={<FiX />}
+                  text="Cancel"
+                  color="gray"
+                />
+                <Button
+                  onClick={handleSave}
+                  icon={<FiCheck />}
+                  text={loading ? "Saving..." : "Save"}
+                  color="cyan"
+                />
               </>
             ) : (
-              <Button onClick={() => setEditing(true)} icon={<FiEdit2 />} text="Edit Profile" color="cyan" />
+              <Button
+                onClick={() => setEditing(true)}
+                icon={<FiEdit2 />}
+                text="Edit Profile"
+                color="cyan"
+              />
             )}
           </div>
         </div>
@@ -189,6 +257,7 @@ export default function Profile() {
   );
 }
 
+// Reusable Input Field
 const InputField = ({ label, ...props }) => (
   <div>
     <label className="block text-sm text-gray-300 mb-1">{label}</label>
@@ -200,6 +269,7 @@ const InputField = ({ label, ...props }) => (
   </div>
 );
 
+// Reusable TextArea Field
 const TextAreaField = ({ label, ...props }) => (
   <div className="sm:col-span-2">
     <label className="block text-sm text-gray-300 mb-1">{label}</label>
@@ -212,6 +282,7 @@ const TextAreaField = ({ label, ...props }) => (
   </div>
 );
 
+// Reusable Select Field
 const SelectField = ({ label, name, value, onChange, options, disabled }) => (
   <div>
     <label className="block text-sm text-gray-300 mb-1">{label}</label>
@@ -225,7 +296,7 @@ const SelectField = ({ label, name, value, onChange, options, disabled }) => (
     >
       <option value="">Select {label}</option>
       {options.map((opt) => (
-        <option key={opt} value={opt}>
+        <option key={opt} value={opt} className="text-black">
           {opt}
         </option>
       ))}
@@ -233,14 +304,14 @@ const SelectField = ({ label, name, value, onChange, options, disabled }) => (
   </div>
 );
 
+// Reusable Button
 const Button = ({ onClick, icon, text, color }) => (
   <button
     onClick={onClick}
     className={`px-4 py-2 flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition
     ${color === "gray"
       ? "bg-white/30 hover:bg-white/40 text-gray-300 border border-gray-200"
-      : "bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white shadow-md"}
-    `}
+      : "bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white shadow-md"}`}
   >
     {icon}
     {text}
